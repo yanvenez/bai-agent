@@ -45,16 +45,22 @@ export HERMES_MODEL="$HERMES_MODEL_VAL"
 echo "📡 Base URL: $OPENAI_BASE_URL"
 echo "🤖 Model: $HERMES_MODEL"
 
-# Write .env to /opt/data/.hermes/ (HERMES_HOME)
+# Write .env
 mkdir -p /opt/data/.hermes
 cat > /opt/data/.hermes/.env << EOF
 OPENAI_API_KEY=$OPENAI_API_KEY_VAL
 OPENAI_BASE_URL=$OPENAI_BASE_URL_VAL
 HERMES_MODEL=$HERMES_MODEL_VAL
 EOF
-echo "✅ Wrote .env to /opt/data/.hermes/.env"
+echo "✅ Wrote .env"
 
-# Set hermes config
+# Set correct hermes config keys
+hermes config set model.provider "openai-api" 2>/dev/null || true
+hermes config set model.model "$HERMES_MODEL_VAL" 2>/dev/null || true
+hermes config set model.base_url "$OPENAI_BASE_URL_VAL" 2>/dev/null || true
+hermes config set model.api_key "$OPENAI_API_KEY_VAL" 2>/dev/null || true
+
+# Also set provider.* for compatibility
 hermes config set provider.base_url "$OPENAI_BASE_URL_VAL" 2>/dev/null || true
 hermes config set provider.api_key "$OPENAI_API_KEY_VAL" 2>/dev/null || true
 hermes config set provider.model "$HERMES_MODEL_VAL" 2>/dev/null || true
