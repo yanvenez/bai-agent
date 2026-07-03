@@ -40,5 +40,11 @@ esac
 echo "📡 Base URL: $OPENAI_BASE_URL"
 echo "🤖 Model: $HERMES_MODEL"
 
+# Configure hermes to use our provider
+hermes config set provider.base_url "$OPENAI_BASE_URL" 2>/dev/null || true
+hermes config set provider.api_key "$OPENAI_API_KEY" 2>/dev/null || true
+hermes config set provider.model "$HERMES_MODEL" 2>/dev/null || true
+hermes config set provider.name "openai-api" 2>/dev/null || true
+
 # Start Hermes
 exec hermes gateway run
