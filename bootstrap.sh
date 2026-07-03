@@ -1,5 +1,5 @@
 #!/bin/bash
-# Bootstrap: baca provider.conf, setenv, jalankan proxy + hermes
+# Bootstrap: setup provider and start hermes
 
 CONF="/opt/data/provider.conf"
 
@@ -19,7 +19,13 @@ case "$PROVIDER" in
     sleep 2
     OPENAI_API_KEY_VAL="not-needed"
     OPENAI_BASE_URL_VAL="http://localhost:4000/v1"
-    HERMES_MODEL_VAL="${BAI_MODEL:-gpt-5.4}"
+    HERMES_MODEL_VAL="${BAI_MODEL:-minimax-m3}"
+    ;;
+  bai-direct)
+    # Direct to B.AI without proxy (single key)
+    OPENAI_API_KEY_VAL="${BAI_DIRECT_KEY:-not-set}"
+    OPENAI_BASE_URL_VAL="https://api.b.ai/v1"
+    HERMES_MODEL_VAL="${BAI_MODEL:-minimax-m3}"
     ;;
   mimo)
     OPENAI_API_KEY_VAL="${MIMO_API_KEY}"
@@ -52,20 +58,26 @@ OPENAI_API_KEY=$OPENAI_API_KEY_VAL
 OPENAI_BASE_URL=$OPENAI_BASE_URL_VAL
 HERMES_MODEL=$HERMES_MODEL_VAL
 EOF
-echo "✅ Wrote .env"
 
-# Set correct hermes config keys
-hermes config set model.provider "openai-api" 2>/dev/null || true
-hermes config set model.model "$HERMES_MODEL_VAL" 2>/dev/null || true
-hermes config set model.base_url "$OPENAI_BASE_URL_VAL" 2>/dev/null || true
-hermes config set model.api_key "$OPENAI_API_KEY_VAL" 2>/dev/null || true
+# Directly edit config.yaml to force the model
+CONFIG_FILE="/opt/data/config.yaml"
+if [ -f "$CONFIG_FILE" ]; then
+    # Update existing config
+    sed -i "s|model:.*|model: $HERMES_MODEL_VAL|" "$CONFIG_FILE" 2>/dev/null
+    sed -i "s|base_url:.*|base_url: $OPENAI_BASE_URL_VAL|" "$CONFIG_FILE" 2>/dev/null
+    sed -i "s|api_key:.*|api_key: $OPENAI_API_KEY_VAL|" "$CONFIG_FILE" 2>/dev/null
+else
+    # Create config
+    cat > "$CONFIG_FILE" << YAML
+provider:
+  name: openai-api
+  model: $HERMES_MODEL_VAL
+  base_url: $OPENAI_BASE_URL_VAL
+  api_key: $OPENAI_API_KEY_VAL
+YAML
+fi
 
-# Also set provider.* for compatibility
-hermes config set provider.base_url "$OPENAI_BASE_URL_VAL" 2>/dev/null || true
-hermes config set provider.api_key "$OPENAI_API_KEY_VAL" 2>/dev/null || true
-hermes config set provider.model "$HERMES_MODEL_VAL" 2>/dev/null || true
-
-echo "✅ Config ready"
+echo "✅ Config written to $CONFIG_FILE"
 
 # Start Hermes
 exec hermes gateway run
