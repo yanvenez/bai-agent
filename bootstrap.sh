@@ -32,7 +32,6 @@ case "$PROVIDER" in
     HERMES_MODEL_VAL="${FIREWORKS_MODEL}"
     ;;
   *)
-    echo "Unknown provider: $PROVIDER"
     OPENAI_API_KEY_VAL="${OPENAI_API_KEY}"
     OPENAI_BASE_URL_VAL="${OPENAI_BASE_URL}"
     HERMES_MODEL_VAL="${HERMES_MODEL}"
@@ -46,20 +45,23 @@ export HERMES_MODEL="$HERMES_MODEL_VAL"
 echo "📡 Base URL: $OPENAI_BASE_URL"
 echo "🤖 Model: $HERMES_MODEL"
 
-# Write to ~/.hermes/.env so hermes picks it up
-mkdir -p /opt/data/.hermes
-cat > /opt/data/.hermes/.env << EOF
+# Write to BOTH possible .env locations
+for ENV_DIR in /root/.hermes /opt/data/.hermes /home/*/.hermes; do
+    mkdir -p "$ENV_DIR" 2>/dev/null
+    cat > "$ENV_DIR/.env" << EOF
 OPENAI_API_KEY=$OPENAI_API_KEY_VAL
 OPENAI_BASE_URL=$OPENAI_BASE_URL_VAL
 HERMES_MODEL=$HERMES_MODEL_VAL
 EOF
+    echo "✅ Wrote .env to $ENV_DIR/.env"
+done
 
-# Also set via hermes config
+# Set hermes config directly
 hermes config set provider.base_url "$OPENAI_BASE_URL_VAL" 2>/dev/null || true
 hermes config set provider.api_key "$OPENAI_API_KEY_VAL" 2>/dev/null || true
 hermes config set provider.model "$HERMES_MODEL_VAL" 2>/dev/null || true
 
-echo "✅ Config written to ~/.hermes/.env"
+echo "✅ Config ready"
 
 # Start Hermes
 exec hermes gateway run
