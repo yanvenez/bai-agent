@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  hermes:
+    image: nousresearch/hermes-agent:latest
+    container_name: hermes-agent
+    ports:
+      - "8642:8642"
+    environment:
+      - HERMES_HOME=/opt/data
+      - HERMES_DASHBOARD=1
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL}
+      - HERMES_MODEL=${HERMES_MODEL}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_ALLOWED_USERS=${TELEGRAM_ALLOWED_USERS}
+    restart: unless-stopped
+    volumes:
+      - hermes_data:/opt/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8642/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  hermes_data:
