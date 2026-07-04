@@ -54,5 +54,10 @@ model:
   api_key: "$API_KEY_VAL"
 EOF
 
+# Unset Railway env vars that override our config
+unset OPENAI_BASE_URL
+unset OPENAI_API_KEY
+unset HERMES_MODEL
+
 echo "✅ Config ready"
 exec hermes gateway run

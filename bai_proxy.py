@@ -27,7 +27,7 @@ class KeyRotator:
             print(f"[!] Keys file not found: {path}")
             return
         with open(path) as f:
-            self.keys = [line.strip() for line in f if line.strip() and line.strip().startswith("sk-")]
+            self.keys = [line.strip().split("|")[0].strip() for line in f if line.strip() and line.strip().startswith("sk-")]
         print(f"[+] Loaded {len(self.keys)} API keys")
     
     def get_key(self):
