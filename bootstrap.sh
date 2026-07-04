@@ -54,10 +54,10 @@ model:
   api_key: "$API_KEY_VAL"
 EOF
 
-# Unset Railway env vars that override our config
-unset OPENAI_BASE_URL
-unset OPENAI_API_KEY
-unset HERMES_MODEL
+# Override Railway env vars with correct proxy values
+export OPENAI_BASE_URL="$BASE_URL_VAL"
+export OPENAI_API_KEY="$API_KEY_VAL"
+export HERMES_MODEL="$MODEL_VAL"
 
 echo "✅ Config ready"
 exec hermes gateway run
