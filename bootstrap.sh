@@ -45,7 +45,7 @@ OPENAI_BASE_URL=$BASE_URL_VAL
 HERMES_MODEL=$MODEL_VAL
 EOF
 
-# Write correct config.yaml format
+# Write config.yaml
 cat > /opt/data/config.yaml << EOF
 model:
   default: $MODEL_VAL
@@ -54,10 +54,22 @@ model:
   api_key: "$API_KEY_VAL"
 EOF
 
-# Override Railway env vars with correct proxy values
+# Force override ALL env vars (nuclear option)
+# Docker/s6 env vars persist, so we must override them explicitly
 export OPENAI_BASE_URL="$BASE_URL_VAL"
 export OPENAI_API_KEY="$API_KEY_VAL"
 export HERMES_MODEL="$MODEL_VAL"
 
+# Also set via hermes CLI (writes to config directly)
+HERMES_BIN="/opt/hermes/.venv/bin/hermes"
+if [ -x "$HERMES_BIN" ]; then
+    $HERMES_BIN config set model.base_url "$BASE_URL_VAL" 2>/dev/null
+    $HERMES_BIN config set model.api_key "$API_KEY_VAL" 2>/dev/null
+    $HERMES_BIN config set model.default "$MODEL_VAL" 2>/dev/null
+    $HERMES_BIN config set model.provider openai-api 2>/dev/null
+fi
+
 echo "✅ Config ready"
-exec hermes gateway run
+echo "🔑 OPENAI_BASE_URL=$OPENAI_BASE_URL"
+
+exec /opt/hermes/.venv/bin/hermes gateway run
