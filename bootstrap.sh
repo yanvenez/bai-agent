@@ -19,7 +19,7 @@ case "$PROVIDER" in
     ;;
   bai-direct)
     API_KEY_VAL="${OPENAI_API_KEY}"
-    BASE_URL_VAL="https://api.b.ai/v1"
+    BASE_URL_VAL="${OPENAI_BASE_URL}"
     MODEL_VAL="${HERMES_MODEL:-minimax-m3}"
     ;;
   mimo)
